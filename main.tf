@@ -1,7 +1,16 @@
+# Specify the AWS provider
 provider "aws" {
-  region = "us-west-2"  # Specify the AWS region
+  region = var.AWS_REGION  # Using a variable for the region
 }
 
+# Define a variable for AWS region
+variable "AWS_REGION" {
+  description = "The AWS region to deploy resources"
+  type        = string
+  default     = "us-west-2"  # Default region (can be overridden through environment variables)
+}
+
+# Create a VPC
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
 
@@ -10,6 +19,7 @@ resource "aws_vpc" "main" {
   }
 }
 
+# Create a subnet in the VPC
 resource "aws_subnet" "subnet" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.1.0/24"
@@ -20,6 +30,7 @@ resource "aws_subnet" "subnet" {
   }
 }
 
+# Create a security group allowing SSH traffic
 resource "aws_security_group" "allow_ssh" {
   name        = "allow_ssh"
   description = "Allow SSH inbound traffic"
@@ -40,13 +51,13 @@ resource "aws_security_group" "allow_ssh" {
   }
 }
 
+# Create an EC2 instance
 resource "aws_instance" "example" {
-  ami           = "ami-04dd23e62ed049936"  # Example AMI ID (update with your region's AMI ID)
+  ami           = "ami-04dd23e62ed049936"  # Example AMI ID (replace with the appropriate AMI for your region)
   instance_type = "t2.micro"
 
   subnet_id              = aws_subnet.subnet.id
-  security_groups        = [aws_security_group.allow_ssh.id]  # Wrap the security group ID in square brackets
-  #key_name               = "mykey"  # Replace with your SSH key name
+  security_groups        = [aws_security_group.allow_ssh.id]
   associate_public_ip_address = true
   tags = {
     Name = "Example-Instance"
